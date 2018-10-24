@@ -12,16 +12,14 @@
 #define   MESH_PORT       5555
 #define HOSTNAME "MQTT_Bridge"
 
-//const char* hostId="api.thingspeak.com";
-//String apiKey = "98KB26E9DSW91TB5";
-
-const char *ssidAP = "ESPuser";
-const char *passwordAP = "24041990";
+//connect to the AP with these credentials
+const char *ssidAP = "Your AP ssid";
+const char *passwordAP = "Your AP pass";
 
 String STATION_SSID; 
 String STATION_PASSWORD;
 
-const char* mqtt_server="101.53.152.58"; 
+const char* mqtt_server="MQTT server ip"; 
 
 Scheduler  ts; // to control your personal task
 painlessMesh  mesh;
