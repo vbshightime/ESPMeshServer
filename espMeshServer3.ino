@@ -3,8 +3,7 @@
 #include <ESP8266WebServer.h>
 #include <EEPROM.h>
 #include <PubSubClient.h> 
-
-
+#include "FS.h"
 
 #define   MESH_PREFIX     "ESPMesh"
 #define   MESH_PASSWORD   "24041990"
@@ -12,14 +11,16 @@
 #define   MESH_PORT       5555
 #define HOSTNAME "MQTT_Bridge"
 
-//connect to the AP with these credentials
-const char *ssidAP = "Your AP ssid";
-const char *passwordAP = "Your AP pass";
+//const char* hostId="api.thingspeak.com";
+//String apiKey = "98KB26E9DSW91TB5";
+
+const char *ssidAP = "ESPuser";
+const char *passwordAP = "24041990";
 
 String STATION_SSID; 
 String STATION_PASSWORD;
 
-const char* mqtt_server="MQTT server ip"; 
+const char* mqtt_server="Your mqtt host id here"; 
 
 Scheduler  ts; // to control your personal task
 painlessMesh  mesh;
@@ -38,7 +39,8 @@ IPAddress ap_subnet(255,255,255,0);
 // Prototype
 void receivedCallback( uint32_t from, String &msg );
 
-void taskBroadCallback();
+void taskOnBroadcast();
+void taskOnDisable();
 
 unsigned long apTimer =0;
 unsigned long apInterval = 30000;
@@ -80,7 +82,7 @@ const char INDEX_HTML[] =
 
 
 // Send my ID every 10 seconds to inform others
-Task taskBroadcast(20*TASK_SECOND,TASK_FOREVER,&taskBroadCallback,&ts,false,NULL);
+Task taskBroadcast(20*TASK_SECOND,TASK_FOREVER,&taskOnBroadcast,&ts,false,NULL,&taskOnDisable);
 
 //*****************READ STRING**********************//
 String read_string(int l, int p){
@@ -88,9 +90,6 @@ String read_string(int l, int p){
   for (int n = p; n < l+p; ++n)
     {
      if(char(EEPROM.read(n))!=';'){
-     /* if(isWhitespace(char(EEPROM.read(n)))){
-          Serial.println("YEs it contains whitespace");
-        }*/
        temp += String(char(EEPROM.read(n)));
      }else n=l+p;
     }
@@ -101,6 +100,11 @@ void setup() {
   Serial.begin(115200);
   
   EEPROM.begin(512);
+  SPIFFS.begin();
+  Serial.println(SPIFFS.format() ? "Format Complete" : "Un successful");
+
+  
+  
   Serial.println();
   Serial.print("Configuring access point...");
   /* You can remove the password parameter if you want the AP to be open. */
@@ -136,7 +140,7 @@ void setup() {
     Serial.printf("Dropped Connection %u\n", nodeId);
   });
 
-  taskBroadcast.enable();
+  //taskBroadcast.enable();
 }
 
 void loop() {
@@ -145,7 +149,7 @@ void loop() {
 }
 
 //callback for task broadcast
-void taskBroadCallback(){
+void taskOnBroadcast(){
     DynamicJsonBuffer jsonBuffer;
     JsonObject& msg = jsonBuffer.createObject();
     msg["topic"] = "logServer";
@@ -188,6 +192,8 @@ void taskBroadCallback(){
      client.publish("TempRoom2",String(valueTemp1).c_str());
      client.publish("HumidRoom2",String(valueHumid1).c_str());  
      client.loop();
+
+     
   //}    
     /*if(wifiClient.connect(hostId,80)){
             String postStr = apiKey;
@@ -214,6 +220,9 @@ void taskBroadCallback(){
           wifiClient.stop();*/
   }
 
+void taskOnDisable(){
+   taskBroadcast.disable();
+  }
 
 //callback to the received messages from different nodes
 void receivedCallback( uint32_t from, String &msg ) {
@@ -243,11 +252,13 @@ void receivedCallback( uint32_t from, String &msg ) {
     Serial.println(valueTemp1);
     Serial.println(valueHumid1);
   }
+  taskBroadcast.enable();
 }
 
 void meshInit(uint32_t getChannel){
-  mesh.setDebugMsgTypes( ERROR | CONNECTION | S_TIME );  // set before init() so that you can see startup messages
-
+  // set before init() so that you can see startup messages
+  //mesh.setDebugMsgTypes( ERROR | CONNECTION | S_TIME );  
+  mesh.setDebugMsgTypes(ERROR | S_TIME);
   mesh.init( MESH_PREFIX, MESH_PASSWORD, &ts, MESH_PORT, WIFI_AP_STA, getChannel);
   
 }
