@@ -47,7 +47,13 @@ On the client side, We are getting temperature and humidity values from DHT 11 a
 
 ## Profile
 
-# Coming Soon
+<img src="https://github.com/vbshightime/ESP32-Captive-Portal/blob/master/FZP1BLDJSCG1ZDD.LARGE.jpg">
+
+<img src="https://github.com/vbshightime/ESPMeshServer/blob/master/Capture6.PNG">
+
+<img src="https://github.com/vbshightime/ESPMeshServer/blob/master/Capture7.PNG">
+
+<img src="https://github.com/vbshightime/ESPMeshServer/blob/master/Capture5.PNG">
 
 ## Limitations
 
